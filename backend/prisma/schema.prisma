@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  ENGINEER
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
+}
+
+enum UploadSource {
+  FILE
+  PASTE
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  MITIGATED
+  RESOLVED
+}
+
+enum IncidentEventType {
+  CREATED
+  ASSIGNED
+  UNASSIGNED
+  STATUS_CHANGED
+  SEVERITY_CHANGED
+  NOTE_ADDED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole @default(ENGINEER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  uploadBatches     UploadBatch[]
+  createdIncidents  Incident[]      @relation("IncidentCreatedBy")
+  assignedIncidents Incident[]      @relation("IncidentAssignee")
+  incidentEvents    IncidentEvent[]
+}
+
+model UploadBatch {
+  id             String       @id @default(cuid())
+  filename       String?
+  source         UploadSource
+  lineCount      Int
+  parsedCount    Int
+  skippedCount   Int
+  uploadedBy     User?        @relation(fields: [uploadedById], references: [id])
+  uploadedById   String?
+  createdAt      DateTime     @default(now())
+
+  logs Log[]
+
+  @@index([createdAt])
+}
+
+model Log {
+  id             String        @id @default(cuid())
+  timestamp      DateTime
+  level          LogLevel
+  service        String
+  message        String
+  rawLine        String
+  requestId      String?
+  traceId        String?
+  lineNumber     Int?
+  uploadBatch    UploadBatch?  @relation(fields: [uploadBatchId], references: [id], onDelete: SetNull)
+  uploadBatchId  String?
+  errorPattern   ErrorPattern? @relation(fields: [errorPatternId], references: [id], onDelete: SetNull)
+  errorPatternId String?
+  createdAt      DateTime      @default(now())
+
+  @@index([timestamp])
+  @@index([requestId])
+  @@index([traceId])
+  // Covers "list logs for pattern X ordered by time" (errorPatternId lookup
+  // + the ORDER BY) in one index instead of a filter plus a separate sort.
+  @@index([errorPatternId, timestamp])
+  // Covers the dashboard/spike queries: WHERE level IN (...) AND timestamp >= X.
+  @@index([level, timestamp])
+  // Covers filtering by service alone (leftmost-prefix use of this index)
+  // and by service+level+time together; a standalone @@index([service]) or
+  // @@index([level]) would be redundant with this composite for those cases.
+  @@index([service, level, timestamp])
+}
+
+model ErrorPattern {
+  id              String   @id @default(cuid())
+  signature       String   @unique
+  sampleMessage   String
+  service         String
+  occurrenceCount Int      @default(0)
+  firstSeenAt     DateTime
+  lastSeenAt      DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  logs      Log[]
+  incidents Incident[]
+
+  @@index([occurrenceCount])
+  @@index([lastSeenAt])
+  @@index([service])
+}
+
+model Incident {
+  id                 String           @id @default(cuid())
+  title              String
+  description        String
+  severity           IncidentSeverity @default(MEDIUM)
+  status             IncidentStatus   @default(OPEN)
+  investigationNotes String?
+  resolutionNotes    String?
+  errorPattern       ErrorPattern?    @relation(fields: [errorPatternId], references: [id], onDelete: SetNull)
+  errorPatternId     String?
+  assignee           User?            @relation("IncidentAssignee", fields: [assigneeId], references: [id])
+  assigneeId         String?
+  createdBy          User             @relation("IncidentCreatedBy", fields: [createdById], references: [id])
+  createdById        String
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  events IncidentEvent[]
+
+  @@index([status])
+  @@index([severity])
+  @@index([createdAt])
+  @@index([errorPatternId])
+}
+
+model IncidentEvent {
+  id         String            @id @default(cuid())
+  incident   Incident          @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  incidentId String
+  type       IncidentEventType
+  message    String
+  actor      User?             @relation(fields: [actorId], references: [id])
+  actorId    String?
+  createdAt  DateTime          @default(now())
+
+  @@index([incidentId])
+  @@index([createdAt])
+}

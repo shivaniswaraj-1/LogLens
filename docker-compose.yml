@@ -1,0 +1,52 @@
+# NOTE: not verified with a local `docker compose up` in this environment
+# (no Docker available on the dev machine this was built on). Please run
+# it yourself and report any issues.
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: loglens
+      POSTGRES_PASSWORD: loglens
+      POSTGRES_DB: loglens
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U loglens']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://loglens:loglens@postgres:5432/loglens?schema=public
+      PORT: 4000
+      JWT_SECRET: change-me-in-production
+      JWT_EXPIRES_IN: 8h
+      NODE_ENV: production
+      CORS_ORIGIN: http://localhost:8080
+      MAX_UPLOAD_SIZE_BYTES: 5242880
+    ports:
+      - '4000:4000'
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - '8080:80'
+
+volumes:
+  postgres_data:
