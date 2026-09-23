@@ -10,9 +10,12 @@ function required(name: string, fallback?: string): string {
   return value;
 }
 
+const parsedPort = Number(process.env.PORT);
+const port = Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : 4000;
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
-  port: Number(process.env.PORT ?? 4000),
+  port,
   databaseUrl: required('DATABASE_URL'),
   jwtSecret: required('JWT_SECRET', process.env.NODE_ENV === 'test' ? 'test-secret' : undefined),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '8h',
