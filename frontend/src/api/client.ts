@@ -45,7 +45,8 @@ function buildQueryString(query?: RequestOptions['query']): string {
 // backend (see vite.config.ts). When the frontend is deployed separately
 // from the backend (different host/port), set VITE_API_BASE_URL at build
 // time to the backend's origin, e.g. https://api.example.com.
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+// Tolerates the common mistakes of a trailing slash or a trailing /api.
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '').replace(/\/api$/, '');
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, isFormData, query } = options;
