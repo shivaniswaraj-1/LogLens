@@ -30,7 +30,7 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
-      <div className="w-full max-w-sm rounded-xl border border-slate-800 bg-slate-900/60 p-8">
+      <div className="w-full max-w-sm rounded-xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8">
         <h1 className="font-mono text-2xl font-semibold text-sky-400">LogLens</h1>
         <p className="mt-1 text-sm text-slate-400">Sign in to continue</p>
 

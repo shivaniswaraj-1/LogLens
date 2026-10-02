@@ -87,13 +87,13 @@ export function IncidentDetailPage() {
         &larr; Back to incidents
       </Link>
 
-      <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-lg font-semibold text-slate-100">{incident.title}</h1>
-            <p className="mt-2 whitespace-pre-wrap text-sm text-slate-400">{incident.description}</p>
+      <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
+        <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="break-words text-lg font-semibold text-slate-100">{incident.title}</h1>
+            <p className="mt-2 whitespace-pre-wrap break-words text-sm text-slate-400">{incident.description}</p>
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-2">
+          <div className="flex shrink-0 flex-row gap-2 sm:flex-col sm:items-end">
             <SeverityBadge severity={incident.severity} />
             <StatusBadge status={incident.status} />
           </div>
@@ -171,12 +171,12 @@ export function IncidentDetailPage() {
           <label htmlFor="incident-note-text" className="block text-xs font-medium uppercase tracking-wide text-slate-500">
             Add note
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 sm:flex-nowrap">
             <select
               aria-label="Note type"
               value={noteType}
               onChange={(e) => setNoteType(e.target.value as 'investigation' | 'resolution')}
-              className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+              className="w-full rounded-md border sm:w-auto border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
             >
               <option value="investigation">Investigation</option>
               <option value="resolution">Resolution</option>
@@ -186,7 +186,7 @@ export function IncidentDetailPage() {
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
               placeholder="Add a note…"
-              className="flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600"
+              className="min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600"
             />
             <button
               type="submit"
@@ -209,7 +209,7 @@ export function IncidentDetailPage() {
                 {EVENT_LABELS[event.type] ?? event.type}
                 {event.actor && <span className="text-slate-500"> &middot; {event.actor.name}</span>}
               </p>
-              <p className="text-xs text-slate-500">{event.message}</p>
+              <p className="break-words text-xs text-slate-500 [overflow-wrap:anywhere]">{event.message}</p>
               <p className="text-xs text-slate-600">{new Date(event.createdAt).toLocaleString()}</p>
             </li>
           ))}

@@ -35,10 +35,12 @@ export function ErrorPatternDetailPage() {
         </Link>
       </div>
 
-      <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-lg font-semibold text-slate-100">{pattern.sampleMessage}</h1>
+      <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="break-words text-lg font-semibold text-slate-100 [overflow-wrap:anywhere]">
+              {pattern.sampleMessage}
+            </h1>
             <p className="mt-1 text-sm text-slate-500">
               {pattern.service} &middot; {pattern.occurrenceCount} occurrences &middot; first seen{' '}
               {new Date(pattern.firstSeenAt).toLocaleString()}
@@ -46,7 +48,7 @@ export function ErrorPatternDetailPage() {
           </div>
           <button
             onClick={() => setShowCreateIncident(true)}
-            className="shrink-0 rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
+            className="shrink-0 self-start rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
           >
             Create incident
           </button>
@@ -60,10 +62,10 @@ export function ErrorPatternDetailPage() {
                 <li key={incident.id}>
                   <Link
                     to={`/incidents/${incident.id}`}
-                    className="flex items-center gap-2 text-sm text-slate-300 hover:text-sky-400"
+                    className="flex items-start gap-2 text-sm text-slate-300 hover:text-sky-400"
                   >
                     <StatusBadge status={incident.status} />
-                    {incident.title}
+                    <span className="min-w-0 break-words">{incident.title}</span>
                   </Link>
                 </li>
               ))}
@@ -82,17 +84,23 @@ export function ErrorPatternDetailPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
-                  <th className="px-4 py-2 font-medium">Timestamp</th>
+                  <th className="hidden px-4 py-2 font-medium sm:table-cell">Timestamp</th>
                   <th className="px-4 py-2 font-medium">Message</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
                 {logsData.items.map((log) => (
                   <tr key={log.id}>
-                    <td className="whitespace-nowrap px-4 py-2 font-mono text-xs text-slate-400">
+                    <td className="hidden whitespace-nowrap px-4 py-2 font-mono text-xs text-slate-400 sm:table-cell">
                       {new Date(log.timestamp).toLocaleString()}
                     </td>
-                    <td className="px-4 py-2 text-slate-200">{log.message}</td>
+                    <td className="px-4 py-2 text-slate-200">
+                      {/* On phones the timestamp column is hidden and shown above the message instead. */}
+                      <span className="block font-mono text-xs text-slate-500 sm:hidden">
+                        {new Date(log.timestamp).toLocaleString()}
+                      </span>
+                      <span className="break-words [overflow-wrap:anywhere]">{log.message}</span>
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -53,8 +53,8 @@ export function CreateIncidentModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-      <div className="w-full max-w-lg rounded-xl border border-slate-800 bg-slate-900 p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
+      <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-6">
         <h2 className="text-lg font-semibold text-slate-100">New incident</h2>
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
@@ -82,7 +82,7 @@ export function CreateIncidentModal({
               className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none"
             />
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row">
             <div className="flex-1">
               <label htmlFor="incident-severity" className="block text-xs font-medium text-slate-400">
                 Severity

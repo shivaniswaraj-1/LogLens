@@ -5,7 +5,7 @@ export function Pagination({ pagination, onPageChange }: { pagination: Paginatio
   if (total === 0) return null;
 
   return (
-    <div className="flex items-center justify-between border-t border-slate-800 px-4 py-3 text-sm text-slate-400">
+    <div className="flex flex-col gap-2 border-t border-slate-800 px-4 py-3 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between">
       <span>
         Page {page} of {totalPages} &middot; {total} total
       </span>
@@ -13,14 +13,14 @@ export function Pagination({ pagination, onPageChange }: { pagination: Paginatio
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="rounded-md border border-slate-700 px-3 py-1 disabled:opacity-40 hover:bg-slate-800"
+          className="flex-1 rounded-md border border-slate-700 px-3 py-1.5 disabled:opacity-40 hover:bg-slate-800 sm:flex-none sm:py-1"
         >
           Previous
         </button>
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          className="rounded-md border border-slate-700 px-3 py-1 disabled:opacity-40 hover:bg-slate-800"
+          className="flex-1 rounded-md border border-slate-700 px-3 py-1.5 disabled:opacity-40 hover:bg-slate-800 sm:flex-none sm:py-1"
         >
           Next
         </button>

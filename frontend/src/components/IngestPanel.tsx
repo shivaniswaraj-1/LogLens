@@ -62,7 +62,8 @@ export function IngestPanel({ onIngested }: { onIngested: () => void }) {
   }
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
+    // w-full makes the open panel drop onto its own row in the page header.
+    <div className="w-full rounded-lg border border-slate-800 bg-slate-900/60 p-4">
       <div className="flex items-center justify-between">
         <div className="flex gap-1 rounded-md border border-slate-800 p-1">
           <button
@@ -136,7 +137,7 @@ export function IngestPanel({ onIngested }: { onIngested: () => void }) {
                 <summary className="cursor-pointer">View skipped lines</summary>
                 <ul className="mt-1 space-y-1 font-mono">
                   {summary.sampleFailures.map((f) => (
-                    <li key={f.lineNumber}>
+                    <li key={f.lineNumber} className="break-words [overflow-wrap:anywhere]">
                       Line {f.lineNumber}: {f.rawLine}
                     </li>
                   ))}

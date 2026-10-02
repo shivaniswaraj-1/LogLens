@@ -25,7 +25,7 @@ export function IncidentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-semibold text-slate-100">Incidents</h1>
         <button
           onClick={() => setShowCreate(true)}
@@ -43,7 +43,7 @@ export function IncidentsPage() {
             setStatus(e.target.value as IncidentStatus | '');
             setPage(1);
           }}
-          className="rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200"
+          className="min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200 sm:flex-none"
         >
           <option value="">All statuses</option>
           {STATUSES.map((s) => (
@@ -59,7 +59,7 @@ export function IncidentsPage() {
             setSeverity(e.target.value as IncidentSeverity | '');
             setPage(1);
           }}
-          className="rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200"
+          className="min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200 sm:flex-none"
         >
           <option value="">All severities</option>
           {SEVERITIES.map((s) => (
@@ -77,7 +77,23 @@ export function IncidentsPage() {
       )}
       {data && data.items.length > 0 && (
         <div className="overflow-hidden rounded-lg border border-slate-800">
-          <table className="w-full text-left text-sm">
+          <ul className="divide-y divide-slate-800 md:hidden">
+            {data.items.map((incident) => (
+              <li key={incident.id}>
+                <Link to={`/incidents/${incident.id}`} className="block space-y-2 px-4 py-3 text-sm hover:bg-slate-900/40">
+                  <p className="break-words font-medium text-slate-200">{incident.title}</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <SeverityBadge severity={incident.severity} />
+                    <StatusBadge status={incident.status} />
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    {incident.assignee?.name ?? 'Unassigned'} &middot; {new Date(incident.createdAt).toLocaleString()}
+                  </p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <table className="hidden w-full text-left text-sm md:table">
             <thead className="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-4 py-2 font-medium">Title</th>

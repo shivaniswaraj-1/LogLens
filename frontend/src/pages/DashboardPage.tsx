@@ -29,7 +29,7 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-semibold text-slate-100">Dashboard</h1>
         <div className="flex gap-1 rounded-md border border-slate-800 p-1">
           {RANGE_OPTIONS.map((opt) => (
@@ -46,7 +46,7 @@ export function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <StatCard label="Total Logs" value={data.totalLogs.toLocaleString()} />
         <StatCard label="Errors" value={data.levelCounts.ERROR + data.levelCounts.FATAL} tone="error" />
         <StatCard label="Warnings" value={data.levelCounts.WARN} tone="warn" />
@@ -68,7 +68,7 @@ export function DashboardPage() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
               <XAxis dataKey="bucket" tickFormatter={formatHour} stroke="#64748b" fontSize={12} minTickGap={40} />
-              <YAxis stroke="#64748b" fontSize={12} allowDecimals={false} />
+              <YAxis stroke="#64748b" fontSize={12} allowDecimals={false} width={36} />
               <Tooltip
                 labelFormatter={(value) => formatHour(value as string)}
                 contentStyle={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8 }}
@@ -138,7 +138,7 @@ export function DashboardPage() {
                     className="block rounded-md border border-slate-800 p-3 text-sm hover:border-sky-700 hover:bg-slate-800/50"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className="truncate font-medium text-slate-200">{incident.title}</p>
+                      <p className="min-w-0 truncate font-medium text-slate-200">{incident.title}</p>
                       <StatusBadge status={incident.status} />
                     </div>
                     <div className="mt-1 flex items-center gap-2">

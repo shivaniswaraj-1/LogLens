@@ -16,7 +16,7 @@ export function ErrorPatternsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-semibold text-slate-100">Error Patterns</h1>
         <div className="flex gap-1 rounded-md border border-slate-800 p-1">
           <button
@@ -41,7 +41,21 @@ export function ErrorPatternsPage() {
       )}
       {data && data.items.length > 0 && (
         <div className="overflow-hidden rounded-lg border border-slate-800">
-          <table className="w-full text-left text-sm">
+          <ul className="divide-y divide-slate-800 md:hidden">
+            {data.items.map((pattern) => (
+              <li key={pattern.id}>
+                <Link to={`/error-patterns/${pattern.id}`} className="block space-y-1.5 px-4 py-3 text-sm hover:bg-slate-900/40">
+                  <p className="break-words font-medium text-slate-200 [overflow-wrap:anywhere]">{pattern.sampleMessage}</p>
+                  <p className="text-xs text-slate-400">
+                    {pattern.service} &middot; {pattern.occurrenceCount} occurrences &middot;{' '}
+                    {pattern._count?.incidents ?? 0} incidents
+                  </p>
+                  <p className="text-xs text-slate-500">Last seen {new Date(pattern.lastSeenAt).toLocaleString()}</p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <table className="hidden w-full text-left text-sm md:table">
             <thead className="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-4 py-2 font-medium">Pattern</th>

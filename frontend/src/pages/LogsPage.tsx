@@ -42,7 +42,7 @@ export function LogsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-semibold text-slate-100">Logs</h1>
         <IngestPanel onIngested={() => setIngestNonce((n) => n + 1)} />
       </div>
@@ -55,7 +55,7 @@ export function LogsPage() {
             setService(e.target.value);
             setPage(1);
           }}
-          className="rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200"
+          className="min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200 sm:flex-none"
         >
           <option value="">All services</option>
           {services?.services.map((s) => (
@@ -71,7 +71,7 @@ export function LogsPage() {
             setLevel(e.target.value as LogLevel | '');
             setPage(1);
           }}
-          className="rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200"
+          className="min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200 sm:flex-none"
         >
           <option value="">All levels</option>
           {LEVELS.map((l) => (
@@ -85,7 +85,7 @@ export function LogsPage() {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder="Search message text…"
-          className="min-w-[240px] flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200 placeholder:text-slate-600"
+          className="w-full rounded-md sm:w-auto sm:min-w-[240px] sm:flex-1 border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200 placeholder:text-slate-600"
         />
       </div>
 
@@ -96,7 +96,28 @@ export function LogsPage() {
       )}
       {data && data.items.length > 0 && (
         <div className="overflow-hidden rounded-lg border border-slate-800">
-          <table className="w-full text-left text-sm">
+          {/* Mobile: stacked cards. A 4-column table doesn't fit a phone screen. */}
+          <ul className="divide-y divide-slate-800 md:hidden">
+            {data.items.map((log) => (
+              <li key={log.id} className="space-y-1.5 px-4 py-3 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <LevelBadge level={log.level} />
+                  <span className="font-mono text-xs text-slate-500">{new Date(log.timestamp).toLocaleString()}</span>
+                </div>
+                <p className="text-xs text-slate-400">{log.service}</p>
+                <p className="break-words text-slate-200 [overflow-wrap:anywhere]">
+                  {log.errorPatternId ? (
+                    <Link to={`/error-patterns/${log.errorPatternId}`} className="hover:text-sky-400 hover:underline">
+                      {log.message}
+                    </Link>
+                  ) : (
+                    log.message
+                  )}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <table className="hidden w-full text-left text-sm md:table">
             <thead className="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-4 py-2 font-medium">Timestamp</th>
