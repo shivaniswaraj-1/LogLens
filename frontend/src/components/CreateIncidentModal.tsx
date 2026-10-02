@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { createIncident } from '../api/endpoints';
 import { useAsync } from '../hooks/useAsync';
 import { listUsers } from '../api/endpoints';
+import { useAuth } from '../context/AuthContext';
 import { ApiClientError } from '../api/client';
 import type { Incident, IncidentSeverity } from '../api/types';
 
@@ -26,6 +27,10 @@ export function CreateIncidentModal({
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: usersData } = useAsync(() => listUsers(), []);
+  const { user } = useAuth();
+  // Engineers can only assign to themselves (enforced by the API too).
+  const assignableUsers =
+    user?.role === 'ADMIN' ? usersData?.users : usersData?.users.filter((u) => u.id === user?.id);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -106,7 +111,7 @@ export function CreateIncidentModal({
                 className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
               >
                 <option value="">Unassigned</option>
-                {usersData?.users.map((u) => (
+                {assignableUsers?.map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.name}
                   </option>

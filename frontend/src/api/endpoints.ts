@@ -11,6 +11,7 @@ import type {
   LogLevel,
   PaginatedResult,
   User,
+  UserSummary,
 } from './types';
 
 export interface LoginInput {
@@ -95,7 +96,7 @@ export function getDashboardSummary(hours: number) {
 }
 
 export function listUsers() {
-  return apiRequest<{ users: User[] }>('/users');
+  return apiRequest<{ users: UserSummary[] }>('/users');
 }
 
 export interface IncidentListParams {

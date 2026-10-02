@@ -9,6 +9,7 @@ import {
   updateIncidentStatus,
 } from '../api/endpoints';
 import { useAsync } from '../hooks/useAsync';
+import { useAuth } from '../context/AuthContext';
 import { ErrorState, Spinner } from '../components/StatusViews';
 import { SeverityBadge, StatusBadge } from '../components/Badge';
 import { ApiClientError } from '../api/client';
@@ -34,6 +35,9 @@ export function IncidentDetailPage() {
 
   const { data, error, isLoading, reload } = useAsync(() => getIncident(id!), [id]);
   const { data: usersData } = useAsync(() => listUsers(), []);
+  const { user } = useAuth();
+  // UI hint only; the API enforces this with requireRole('ADMIN').
+  const isAdmin = user?.role === 'ADMIN';
 
   if (isLoading && !data) return <Spinner label="Loading incident…" />;
   if (error) return <ErrorState message={error} onRetry={reload} />;
@@ -130,7 +134,9 @@ export function IncidentDetailPage() {
               id="incident-detail-assignee"
               value={incident.assigneeId ?? ''}
               onChange={(e) => handleAssign(e.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+              disabled={!isAdmin}
+              title={isAdmin ? undefined : 'Only admins can reassign incidents'}
+              className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <option value="">Unassigned</option>
               {usersData?.users.map((u) => (

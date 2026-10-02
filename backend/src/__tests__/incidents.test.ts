@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { app, registerAndLogin } from './helpers/testApp';
+import { app, registerAdmin, registerAndLogin } from './helpers/testApp';
 import { resetDatabase } from './helpers/testDb';
 import { prisma } from '../config/prisma';
 
@@ -41,12 +41,34 @@ describe('POST /api/incidents', () => {
   it('rejects a non-existent assigneeId with 400, not a raw 500', async () => {
     // Regression test: a foreign-key violation (P2003) previously fell
     // through the error handler to a generic 500 instead of a clear 400.
-    const { token } = await registerAndLogin();
+    const { token } = await registerAdmin();
     const res = await request(app)
       .post('/api/incidents')
       .set('Authorization', `Bearer ${token}`)
       .send({ title: 'Bad assignee', description: 'x', assigneeId: 'does-not-exist' });
     expect(res.status).toBe(400);
+  });
+
+  it('lets an engineer assign a new incident to themselves', async () => {
+    const { token, user } = await registerAndLogin();
+    const incident = await createTestIncident(token, { assigneeId: user.id });
+    expect(incident.assigneeId).toBe(user.id);
+  });
+
+  it('forbids an engineer from assigning a new incident to someone else', async () => {
+    const { token } = await registerAndLogin();
+    const { user: other } = await registerAndLogin();
+    const res = await request(app)
+      .post('/api/incidents')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ title: 'x', description: 'x', assigneeId: other.id });
+    expect(res.status).toBe(403);
+  });
+
+  it('does not expose user emails on incidents', async () => {
+    const { token } = await registerAndLogin();
+    const incident = await createTestIncident(token);
+    expect(incident.createdBy).not.toHaveProperty('email');
   });
 });
 
@@ -108,7 +130,21 @@ describe('PATCH /api/incidents/:id/status', () => {
 });
 
 describe('PATCH /api/incidents/:id/assign', () => {
-  it('assigns an incident to a user', async () => {
+  it('lets an admin assign an incident to a user', async () => {
+    const { token: adminToken } = await registerAdmin();
+    const { token, user } = await registerAndLogin();
+    const incident = await createTestIncident(token);
+
+    const res = await request(app)
+      .patch(`/api/incidents/${incident.id}/assign`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ assigneeId: user.id });
+
+    expect(res.status).toBe(200);
+    expect(res.body.incident.assigneeId).toBe(user.id);
+  });
+
+  it('forbids an engineer from assigning with 403', async () => {
     const { token, user } = await registerAndLogin();
     const incident = await createTestIncident(token);
 
@@ -117,8 +153,48 @@ describe('PATCH /api/incidents/:id/assign', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ assigneeId: user.id });
 
+    expect(res.status).toBe(403);
+  });
+
+  it('checks the current role in the DB, not the one in the token', async () => {
+    // A demoted admin's old token still says ADMIN until it expires.
+    const { token, user } = await registerAdmin();
+    const incident = await createTestIncident(token);
+    await prisma.user.update({ where: { id: user.id }, data: { role: 'ENGINEER' } });
+
+    const res = await request(app)
+      .patch(`/api/incidents/${incident.id}/assign`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ assigneeId: user.id });
+
+    expect(res.status).toBe(403);
+  });
+});
+
+describe('PATCH /api/incidents/:id', () => {
+  it('lets an admin change severity', async () => {
+    const { token } = await registerAdmin();
+    const incident = await createTestIncident(token);
+
+    const res = await request(app)
+      .patch(`/api/incidents/${incident.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ severity: 'CRITICAL' });
+
     expect(res.status).toBe(200);
-    expect(res.body.incident.assigneeId).toBe(user.id);
+    expect(res.body.incident.severity).toBe('CRITICAL');
+  });
+
+  it('forbids an engineer with 403', async () => {
+    const { token } = await registerAndLogin();
+    const incident = await createTestIncident(token);
+
+    const res = await request(app)
+      .patch(`/api/incidents/${incident.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ severity: 'CRITICAL' });
+
+    expect(res.status).toBe(403);
   });
 });
 

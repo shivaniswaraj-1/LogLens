@@ -12,8 +12,10 @@ import {
 
 const incidentInclude = {
   errorPattern: true,
-  assignee: { select: { id: true, name: true, email: true } },
-  createdBy: { select: { id: true, name: true, email: true } },
+  // Email deliberately omitted: incidents are visible to every user, and
+  // emails are only exposed to admins via GET /api/users.
+  assignee: { select: { id: true, name: true } },
+  createdBy: { select: { id: true, name: true } },
 } satisfies Prisma.IncidentInclude;
 
 async function recordEvent(

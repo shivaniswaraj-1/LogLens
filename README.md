@@ -199,7 +199,7 @@ docker compose up --build
 npm run --workspace backend test
 ```
 
-74 tests across 8 suites:
+84 tests across 9 suites:
 
 - **Unit** (no database): `logParser`, `errorGrouping`, `spikeDetection` — pure-function
   tests covering the documented format, malformed-line handling, grouping equivalence
@@ -208,7 +208,8 @@ npm run --workspace backend test
   `loglens_test`): auth (register/login/me, duplicate email, bad password), log
   ingestion (parses + groups + reports skipped lines), log listing/filtering, error
   pattern listing/detail/related-logs, and the full incident lifecycle (create → assign
-  → status transition → note → resolve → activity timeline ordering).
+  → status transition → note → resolve → activity timeline ordering), and role
+  enforcement (admin-only routes return 403 for engineers; emails hidden from engineers).
 
 Frontend: `npx tsc -b`, `npx oxlint`, `npm run build` inside `frontend/` — no frontend
 test framework was added since there's no meaningful business logic on the client side
@@ -228,9 +229,24 @@ adding tooling without a genuine need.
   interpolation of user input (the one `$queryRaw` in `spikeService.ts` interpolates
   only a server-computed `Date`, never user input).
 - CORS is restricted to `CORS_ORIGIN` (the frontend's origin), not `*`.
+- Role-based access control via a `requireRole(...roles)` middleware:
+  - Any signed-in user can view logs/patterns/incidents, ingest logs, create incidents,
+    change incident status, and add notes.
+  - Only `ADMIN` can (re)assign incidents (`PATCH /incidents/:id/assign`) or edit their
+    title/description/severity (`PATCH /incidents/:id`). Engineers can assign an
+    incident they create only to themselves.
+  - User emails are returned only to admins (`GET /users`); incident payloads include
+    just assignee/creator `id` and `name`.
+  - `requireRole` re-reads the role from the database rather than trusting the JWT
+    claim, so demoting an admin takes effect immediately instead of when their token
+    expires.
+  - Registration always creates an `ENGINEER`. Promote a user with
+    `cd backend && npm run user:role -- <email> ADMIN` (uses whatever
+    `DATABASE_URL` points at).
+- The test suite refuses to start unless `DATABASE_URL`'s database name ends in
+  `_test`, because every test file wipes all tables.
 - This is a portfolio project's security posture, not an audited enterprise system —
-  there's no rate limiting, no refresh-token rotation, and no RBAC beyond `ADMIN`/
-  `ENGINEER` role storage (roles aren't currently enforced on any route).
+  there's no rate limiting and no refresh-token rotation.
 
 ## What you can honestly claim in an interview
 
@@ -290,13 +306,13 @@ been done, and none of it has been tested under concurrent load.
 
 ## Limitations
 
-- No rate limiting, no refresh-token rotation, no RBAC enforcement (roles are stored
-  but not checked on any route — see "Security notes").
+- No rate limiting, no refresh-token rotation. RBAC is two coarse roles, not
+  per-team or per-incident permissions (see "Security notes").
 - Error grouping is purely syntactic (see "Error pattern grouping" above) — it doesn't
   understand semantically-equivalent messages worded differently.
 - Spike detection has no seasonality awareness and only evaluates the current
   wall-clock hour (see "Error spike detection" above).
-- No frontend automated tests — backend has 74 tests, but the client is only checked
+- No frontend automated tests — backend has 84 tests, but the client is only checked
   by `tsc` + lint + a manual smoke pass.
 - Single Postgres instance, no read replicas, no caching layer — fine for a portfolio
   project's expected traffic, not validated at any real scale.
@@ -307,8 +323,6 @@ been done, and none of it has been tested under concurrent load.
 ## Future improvements
 
 - Background job queue for ingestion so large files don't block the request thread.
-- Role-based access control actually enforced on mutating routes (schema already has
-  `ADMIN`/`ENGINEER`).
 - Rate limiting on auth endpoints.
 - Frontend integration/E2E tests (Playwright) covering the auth → ingest → incident flow.
 - Configurable spike-detection windows/thresholds per service instead of one global rule.

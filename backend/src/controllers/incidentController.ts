@@ -27,7 +27,15 @@ function requireUserId(req: Request): string {
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const input = createIncidentSchema.parse(req.body);
-  const incident = await createIncident(input, requireUserId(req));
+  const userId = requireUserId(req);
+  // Engineers may take ownership of an incident they open, but assigning work
+  // to someone else is an admin action (same rule as PATCH /:id/assign). The
+  // role here comes from the JWT; a stale claim only matters for the rare
+  // demoted-admin case, and the dedicated assign route re-checks the DB.
+  if (input.assigneeId && input.assigneeId !== userId && req.user?.role !== 'ADMIN') {
+    throw ApiError.forbidden('Only admins can assign incidents to other users');
+  }
+  const incident = await createIncident(input, userId);
   res.status(201).json({ incident });
 });
 

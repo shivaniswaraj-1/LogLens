@@ -17,6 +17,14 @@ export interface User {
   role: UserRole;
 }
 
+// Entry from GET /api/users; the API only includes email for admins.
+export interface UserSummary {
+  id: string;
+  name: string;
+  role: UserRole;
+  email?: string;
+}
+
 export interface Log {
   id: string;
   timestamp: string;
@@ -64,9 +72,9 @@ export interface Incident {
   resolutionNotes: string | null;
   errorPattern: ErrorPattern | null;
   errorPatternId: string | null;
-  assignee: { id: string; name: string; email: string } | null;
+  assignee: { id: string; name: string } | null;
   assigneeId: string | null;
-  createdBy: { id: string; name: string; email: string };
+  createdBy: { id: string; name: string };
   createdById: string;
   createdAt: string;
   updatedAt: string;
